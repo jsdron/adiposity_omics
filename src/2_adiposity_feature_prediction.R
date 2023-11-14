@@ -11,7 +11,7 @@
   omic <- c("metabol", "proteom")
   i = 1
   
-  df <-fread(paste0("/medpop/esp2/aschuerm/ukb_adiposity_omics/input/adiposity_",omic[i],"_df.csv"))
+  df <-fread(paste0("../input/adiposity_",omic[i],"_df.csv"))
 
 ### 2 - SET VARIABLE LISTS ####
 
@@ -32,7 +32,7 @@
 # Loop through lagou and fit GLM models
 for (j in omic_features) {
   formula <-
-    as.formula(paste0("has_obesity ~", var, "+ enroll_age + sex + PC1 + PC2 + PC3 + PC4 + PC5"))
+    as.formula(paste0("has_obesity ~", var, "+ enroll_age + mri + time between + sex + PC1 + PC2 + PC3 + PC4 + PC5"))
   model <-
     glm(formula, data = file, family = binomial) # Change family and response_variable as needed
   output <-
