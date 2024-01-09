@@ -27,3 +27,8 @@ src/.Rproj.user/shared/notebooks/patch-chunk-names
 *.Rproj
 *.csv
 *.csv
+*.pdf
+*.png
+src/.Rproj.user/*
+results/*
+src/old_scripts/*
