@@ -12,6 +12,8 @@ library(ggpubr)
 
 #### 1 - LOAD DATAFRAMES ####
 
+date <- "20240115"
+
 baseline_prot <- fread('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/data/baseline_adi_prot.n4684.20231201.tsv.gz') # N = 4684
 colnames(baseline_prot) <- gsub("-", "_", colnames(baseline_prot))
 
@@ -43,7 +45,7 @@ rm(tmp, result_row, i, j)
 
 # Save results
 write.table(output_prot, 
-            file = gzfile("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.20231213.tsv.gz"), 
+            file = gzfile(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.",date,".tsv.gz")), 
             append = FALSE, sep = "\t", dec = ".", col.names = TRUE, row.names = FALSE)
 
 #### 4 - VISULIZATION ####
@@ -64,8 +66,8 @@ plot_sig <- ggplot(data=plot, aes(x=term, y=estimate, color=adi_label)) +
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
   scale_color_manual(values=c("#BB6261","#3BA4B9","#96C3B1")) +
   scale_alpha_continuous(guide = FALSE) # hide alpha legend
-ggsave("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/prot_plot_sig_20231213.pdf", plot_sig, width = 25, height = 4)
-ggsave("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/prot_plot_sig_20231213.png", plot_sig, width = 25, height = 4, dpi = 300)
+ggsave(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/prot_plot_sig_",date,".pdf"), plot_sig, width = 25, height = 4)
+ggsave(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/prot_plot_sig_",date,".png"), plot_sig, width = 25, height = 4, dpi = 300)
 
 
 #### 5 - TABLE ONE ####

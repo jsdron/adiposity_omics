@@ -17,9 +17,11 @@ library(ggbreak)
 
 #### 1 - LOAD DATAFRAMES ####
 
-a <- fread('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.20231213.tsv.gz')
+input_date <- "20240115"
+
+a <- fread(paste0('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.',input_date,'.tsv.gz'))
 a$omic <- "Proteomic"
-b <- fread('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_metab.n9012.20231213.tsv.gz',
+b <- fread(paste0('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_metab.n9012.',input_date,'.tsv.gz'),
            select=c('term','estimate','std.error','statistic', 'p.value','outcome','adi_label'))
 b$omic <- "Metabolomic"
 
@@ -64,7 +66,7 @@ ggplot(plot[plot$sig=="sig", ], aes(x = adi_label, y = rounded_per, fill = omic)
   geom_text(aes(label = scales::percent(rounded_per/100)), position = position_dodge(width = 0.9), vjust = -0.5)
 
 #### 3 - MIAMI PLOTS - ALL ####
-output_prot <- fread('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.20231213.tsv.gz')
+output_prot <- fread(paste0('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.',input_date,'.tsv.gz'))
 
 link <- fread("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/data/2_olink_protein_map_mr.txt", select=c("Assay", "chr", "gene_start"))
 link$Assay <- gsub("-", "_", link$Assay)
@@ -188,7 +190,7 @@ ggarrange(
   ncol = 1, nrow = 3)
 
 #### 4 - MIAMI PLOTS - UNIQUE ####
-output_prot <- fread('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.20231213.tsv.gz')
+output_prot <- fread(paste0('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.',input_date,'.tsv.gz'))
 
 link <- fread("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/data/2_olink_protein_map_mr.txt", select=c("Assay", "chr", "gene_start"))
 link$Assay <- gsub("-", "_", link$Assay)
@@ -299,7 +301,7 @@ ggplot(data=tmp, aes(x=reorder(term, -estimate), y=estimate, color=adi_label)) +
 #  geom_text_repel(aes(label=term), size=2)
 
 #### 5 - MIAMI PLOTS - SHARED ####
-output_prot <- fread('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.20231213.tsv.gz')
+output_prot <- fread(paste0('/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/lmResults_adi_prot.n4684.',input_date,'.tsv.gz'))
 
 link <- fread("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/data/2_olink_protein_map_mr.txt", select=c("Assay", "chr", "gene_start"))
 link$Assay <- gsub("-", "_", link$Assay)
@@ -408,5 +410,5 @@ ggplot(output_all[output_all$omic=="Proteomic",], aes(estimate, -log10(p.value),
   #ggtitle("ASATadjBMI") +
   facet_wrap(~adi_label) +
   theme(axis.title.y = element_markdown(),axis.title.x = element_markdown()) #+
-  #geom_text_repel(aes(label=ifelse(res[res$outc=="CAD",]$all_sens == "Yes" & (res[res$outc=="CAD",]$pval<0.001|abs(res[res$outc=="CAD",]$b)>0.3), 
-                                  # res[res$outc=="CAD",]$exp, "")), size=3, force=10, max.overlaps=100)
+#geom_text_repel(aes(label=ifelse(res[res$outc=="CAD",]$all_sens == "Yes" & (res[res$outc=="CAD",]$pval<0.001|abs(res[res$outc=="CAD",]$b)>0.3), 
+# res[res$outc=="CAD",]$exp, "")), size=3, force=10, max.overlaps=100)

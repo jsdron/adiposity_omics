@@ -32,3 +32,13 @@ src/.Rproj.user/shared/notebooks/patch-chunk-names
 src/.Rproj.user/*
 results/*
 src/old_scripts/*
+*.log
+*.gz
+*.snplist
+*.bed
+*.nosex
+*.id
+*.sample
+*.bim
+*.fam
+*.zip
