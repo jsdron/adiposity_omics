@@ -42,3 +42,14 @@ src/old_scripts/*
 *.bim
 *.fam
 *.zip
+*.tsv
+src/02_one_sample_MR/Health-and-Wellbeing-MR-master/BMI_betas.txt
+src/02_one_sample_MR/02_gwas/tmp/samplelist.EUR.txt
+src/02_one_sample_MR/02_gwas/data/metab_gwas.keep_samples.n82680.20240123.txt
+src/02_one_sample_MR/Health-and-Wellbeing-MR-master/BMISNPs.txt
+src/02_one_sample_MR/Health-and-Wellbeing-MR-master/Two-sample MR Base script.R
+src/02_one_sample_MR/Health-and-Wellbeing-MR-master/Two-sample MR Base script - Revisions.R
+src/02_one_sample_MR/Health-and-Wellbeing-MR-master/README.md
+src/02_one_sample_MR/02_gwas/mergelist.txt
+src/02_one_sample_MR/02_gwas/interactive_testing.txt
+data/metab_gwas.list.txt
