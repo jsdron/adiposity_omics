@@ -45,4 +45,4 @@ Note that access to the UK Biobank is required to replicate these results.
 
 If you use this code, please cite:
 
-> Dron JS, Pan M, Schuermans A, et al. Integrative multi-omic analysis of regional fat depots reveals molecular determinants of human fat distribution. *Cell Reports Medicine*. 2025 (Submitted).
+> Dron JS, Pan M, Schuermans A, et al. Integrative multi-omic analysis of regional fat depots reveals molecular determinants of human fat distribution. 2025 (Submitted).
