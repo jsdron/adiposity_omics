@@ -53,3 +53,7 @@ src/02_one_sample_MR/Health-and-Wellbeing-MR-master/README.md
 src/02_one_sample_MR/02_gwas/mergelist.txt
 src/02_one_sample_MR/02_gwas/interactive_testing.txt
 data/metab_gwas.list.txt
+.Rproj.user
+/input
+/src_original
+/data
