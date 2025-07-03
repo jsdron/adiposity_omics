@@ -1,6 +1,6 @@
 #########################################
 # Script: Out-Prot_Exp-Fat.R
-# Description: Two-sample Mendelian randomization (MR) pipeline for fat exposures on proteins
+# Description: Two-sample Mendelian randomization (MR) pipeline for fat exposures on proteins.
 # Key Outputs:
 #   - MR results per outcome (CSV)
 #   - Sensitivity analyses (heterogeneity, pleiotropy)
