@@ -58,3 +58,5 @@ data/metab_gwas.list.txt
 /input
 /src_original
 /data
+/ignore
+/oldMR_markdown
