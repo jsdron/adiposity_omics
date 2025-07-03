@@ -1,5 +1,6 @@
 
 *.pper
+/oldMR_markdown
 src/.Rproj.user/029741B6/sources/prop/1886D694
 src/.Rproj.user/029741B6/sources/prop/40DFA6F5
 src/.Rproj.user/029741B6/sources/prop/CBC4E24D
