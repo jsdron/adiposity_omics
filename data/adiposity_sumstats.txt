@@ -1,4 +1,0 @@
-outcome	variable_name	N	path	path2
-VAT (BMI and height-adjusted)	vatadjbmi3	38965	/medpop/esp2/sagrawal/shared_fat/summstats/0321_vatadjbmi3_bgen_stats.gz	/Volumes/medpop_esp2/sagrawal/shared_fat/summstats/0321_vatadjbmi3_bgen_stats.gz
-ASAT (BMI and height-adjusted)	asatadjbmi3	38965	/medpop/esp2/sagrawal/shared_fat/summstats/0321_asatadjbmi3_bgen_stats.gz	/Volumes/medpop_esp2/sagrawal/shared_fat/summstats/0321_asatadjbmi3_bgen_stats.gz
-GFAT (BMI and height-adjusted)	gfatadjbmi3	38965	/medpop/esp2/sagrawal/shared_fat/summstats/0321_gfatadjbmi3_bgen_stats.gz	/Volumes/medpop_esp2/sagrawal/shared_fat/summstats/0321_gfatadjbmi3_bgen_stats.gz
