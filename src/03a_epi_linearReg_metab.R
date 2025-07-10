@@ -24,7 +24,7 @@ library(ggpubr)
 library(extrafont)
 
 # Imports all available fonts to R
-font_import()  
+font_import(prompt=FALSE)  
 
 # Load fonts for PDF output
 loadfonts(device = "pdf")  
