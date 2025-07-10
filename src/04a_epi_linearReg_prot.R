@@ -20,6 +20,8 @@ library(stringr)
 library(broom)
 library(ggpubr)
 library(extrafont)
+library(ggtext)
+library(ggrepel)
 
 # Load fonts for PDF output
 loadfonts(device = "pdf")  
