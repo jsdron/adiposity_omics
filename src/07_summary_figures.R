@@ -109,26 +109,38 @@ A <- sig_analyte[sig_analyte$adi_label == "VAT", ]$term
 B <- sig_analyte[sig_analyte$adi_label == "ASAT", ]$term
 C <- sig_analyte[sig_analyte$adi_label == "GFAT", ]$term
 
-upset_df <- data.frame(Analyte = sig_analyte$term, Omic = sig_analyte$omic)
 upset_df$VAT <- ifelse(upset_df$Analyte %in% A, 1, 0)
 upset_df$ASAT <- ifelse(upset_df$Analyte %in% B, 1, 0)
 upset_df$GFAT <- ifelse(upset_df$Analyte %in% C, 1, 0)
 
+# Build upset_df with one row per analyte and omic
+upset_df <- sig_analyte %>%
+  distinct(term, .keep_all = TRUE) %>%
+  select(Analyte = term, Omic = omic) %>%
+  mutate(
+    VAT = ifelse(Analyte %in% A, 1, 0),
+    ASAT = ifelse(Analyte %in% B, 1, 0),
+    GFAT = ifelse(Analyte %in% C, 1, 0)
+  )
+
 # Create upset plot
-fig1b <- upset(upset_df,
-               sets = c("VAT", "ASAT", "GFAT"),
-               order.by = "freq",
-               mainbar.y.label = "Intersection size",
-               sets.x.label = "Significant analytes",
-               empty.intersections = "on",
-               query.legend = "bottom",
-               text.scale = rep(1.5, 6),
-               point.size = 3,
-               sets.bar.color = c("#C84D4C", "#2883B1", "#ECB41F"),
-               queries = list(
-                 list(query = elements, params = list("Omic", "Metabolomic"), color = "#E1D2B2", active = TRUE, query.name = "Metabolomic"),
-                 list(query = elements, params = list("Omic", "Proteomic"), color = "#A68A6D", active = TRUE, query.name = "Proteomic")
-               ))
+fig1b <-  upset(upset_df, 
+                sets = c("VAT", "ASAT", "GFAT"), 
+                order.by = "freq",
+                mainbar.y.label = "Intersection size", sets.x.label = "Signficiant analytes",
+                empty.intersections = "on",
+                query.legend = "bottom",
+                text.scale = rep(1.5, 6),  # Adjusts all text elements to 7pt.
+                point.size = 3,
+                sets.bar.color = c("#C84D4C", "#2883B1", "#ECB41F"),  # Change these colors as needed
+                queries = list(list(query = elements, 
+                                    params = list("Omic", c("Metabolomic", "Proteomic")), 
+                                    color = "#E1D2B2", active = T, query.name = "Metabolomic"), #ababab
+                               list(query = elements, 
+                                    params = list("Omic", "Proteomic"), 
+                                    color = "#A68A6D", active = T, query.name = "Proteomic")) #3f3f3f
+)
+
 
 # Save PDF version of Figure 1
 pdf(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/manuscript/Figure1.pdf"),
