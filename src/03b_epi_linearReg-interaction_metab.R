@@ -87,7 +87,7 @@ raw <- raw[raw$unit != "ratio", ]
 output_metab <- merge(output_metab, raw, by.x = "term", by.y = "outcome")
 
 # Identify significant interactions
-output_metab$sig_interaction <- ifelse(output_metab$p.value <0 .05/threshold, "Significant", "NS")
+output_metab$sig_interaction <- ifelse(output_metab$p.value <0.05/threshold, "Significant", "NS")
 
 ###### SAVE RESULTS ######
 write.table(output_metab,
