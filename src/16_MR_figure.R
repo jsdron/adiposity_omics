@@ -286,7 +286,7 @@ rev_mr <- fread("/Volumes/medpop_esp2/mpan/Projects/Adiposity/Adiposity_Omics/re
 rev_mr$label <- paste0(rev_mr$id.outcome, "_", rev_mr$id.exposure)
 rev_mr <- subset(rev_mr, label %in% merge_df$label)
 
-rev_mr$significance <- ifelse(rev_mr$pval <= 0.05 / threshold, "Significant", "Not Significant")
+rev_mr$significance <- ifelse(rev_mr$pval <= 0.05, "Significant", "Not Significant")
 rev_mr <- subset(rev_mr, method != "Egger intercept (correlation inc)")
 
 rev_mr$method <- ifelse(rev_mr$method == "Inverse variance weighted (correlation inc)", "IVW",
