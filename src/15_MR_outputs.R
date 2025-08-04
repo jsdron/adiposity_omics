@@ -25,11 +25,11 @@ mpan_ivs_data <- do.call(cbind, lapply(mpan_ivs, fread))
 # Drop columns with pattern "id.*"
 mpan_ivs_data <- mpan_ivs_data[, !grep("^id\\d*$", names(mpan_ivs_data)), with = FALSE]
 
-# Remove duplicated first column
-mpan_ivs_data <- mpan_ivs_data[, -1]
+# Remove ".x" from column name ending in .x 
+colnames(mpan_ivs_data) <- gsub(".x", "", colnames(mpan_ivs_data))
 
-# Fix column name ending in .y
-colnames(mpan_ivs_data)[1] <- "met-d-Acetate"
+# Drop columns ending in ".y"
+mpan_ivs_data <- mpan_ivs_data[ , !grepl("\\.y$", names(mpan_ivs_data)), with = FALSE]
 
 # Remove "met-d-" prefix from column names
 colnames(mpan_ivs_data) <- gsub("met-d-", "", colnames(mpan_ivs_data))
@@ -42,13 +42,8 @@ transposed <- apply(transposed, 1, function(row) {
 })
 transposed <- data.frame(transposed, stringsAsFactors = FALSE)
 
-# Split into MR and MR-RAPS instrument sets
-mr_iv <- transposed[-grep("MR.RAPS", rownames(transposed)), , drop = FALSE]
-mr_rap_iv <- transposed[grep("MR.RAPS", rownames(transposed)), , drop = FALSE]
-
 # Remove duplicates
-mr_iv <- mr_iv[!duplicated(mr_iv), , drop = FALSE]
-mr_rap_iv <- mr_rap_iv[!duplicated(mr_rap_iv), , drop = FALSE]
+mr_iv <- transposed[!duplicated(transposed), , drop = FALSE]
 
 # Save instrument tables
 write.table(mr_iv, "/Users/michael.tian/Desktop/Natarajan_Lab/Adiposity/Adiposity_Omics/results/MR/Instruments/all_ivs_7.30_Metab.table.tsv",
@@ -56,7 +51,6 @@ write.table(mr_iv, "/Users/michael.tian/Desktop/Natarajan_Lab/Adiposity/Adiposit
 
 write.table(mr_rap_iv, "/Users/michael.tian/Desktop/Natarajan_Lab/Adiposity/Adiposity_Omics/results/MR/Instruments/all_raps_ivs_7.30_Metab.table.tsv",
             quote = FALSE, row.names = TRUE, col.names = FALSE, sep = "\t")
-
 
 ###### MR RESULTS ######
 # Read and concatenate MR results
