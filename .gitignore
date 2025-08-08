@@ -62,3 +62,5 @@ data/metab_gwas.list.txt
 /data
 /ignore
 /oldMR_markdown
+src/17_coxph_prot_candidates.ARCHIVE.R
+src/18_coxph_metab_candidates.ARCHIVE.R
