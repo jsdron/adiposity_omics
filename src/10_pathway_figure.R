@@ -3,7 +3,7 @@
 # Description: Generates pathway enrichment plots for proteins associated 
 #              with ASAT, VAT, GFAT, and their overlaps.
 # Key Outputs:
-#   - Figure 3 (pathway enrichment plots)
+#   - Figure (pathway enrichment plots)
 #########################################
 
 ###### LIBRARIES ######
@@ -71,40 +71,70 @@ gostres_analysis <- function(i) {
 # Build enrichment plot
 gostres_plot <- function(gostres, label_data, colour_pick, plot_data) {
   lighter_colour <- lighten_color(colour_pick, factor = 0.2)
-
-  plot <- gostplot(gostres, capped = FALSE, interactive = FALSE,
-                   pal = c(`GO:BP` = "grey90", KEGG = "grey90", REAC = "grey90", WP = "grey90")) +
+  
+  # Step 1: Create gostplot
+  plot <- gostplot(
+    gostres, capped = FALSE, interactive = FALSE,
+    pal = c(`GO:BP` = "grey90", KEGG = "grey90", REAC = "grey90", WP = "grey90")
+  )
+  
+  # Step 2: Remove default GeomPoint layers so we don’t double-plot
+  plot$layers <- plot$layers[!vapply(plot$layers, function(ly) inherits(ly$geom, "GeomPoint"), logical(1))]
+  
+  # Step 3: Add rest of your plotting layers
+  plot <- plot +
     labs(x = "Annotation", y = expression(-log[10]("P"))) +
     facet_wrap("query", scales = "free", nrow = 3) +
     scale_y_continuous(limits = c(0, 5)) +
     theme_cowplot() +
     theme(
-      axis.title = element_text(size = 12),
-      axis.text = element_text(size = 8),
-      strip.text = element_text(size = 14, face = "bold", hjust = 0),
+      axis.title = element_text(size = 7),
+      axis.text = element_text(size = 6),
+      strip.text = element_blank(), # element_text(size = 7, face = "bold", hjust = 0),
       strip.background = element_rect(fill = "white", colour = "white"),
       legend.text = element_text(size = 7),
+      legend.title = element_text(size = 7),
       panel.background = element_rect(fill = "white"),
       plot.background = element_rect(fill = "white"),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 7),
+      axis.ticks = element_line(linewidth = 0.25, colour = "black"), # ticks match axis 
+      axis.line = element_line(linewidth = 0.25, colour = "black") # thinner axis lines
     ) +
-    geom_point(data = subset(plot_data, significant == TRUE),
-               aes(x = order, y = logpval, size = term_size_scaled, alpha = 0.6),
-               color = lighter_colour, show.legend = FALSE) +
-    geom_point(data = label_data,
-               aes(x = order, y = logpval, size = term_size_scaled, alpha = 1),
-               color = colour_pick, show.legend = FALSE) +
-    geom_hline(yintercept = -log10(0.05), linetype = "dashed", linewidth = 0.25, color = "black") +
-    geom_text_repel(data = label_data,
-                    aes(x = order, y = logpval, label = term_name),
-                    size = 3, ylim = c(-log10(0.05), 5),
-                    box.padding = 0.35,
-                    point.padding = 0.3,
-                    segment.color = 'black', segment.size = 0.3,
-                    max.overlaps = Inf,
-                    force = 2, force_pull = 1, nudge_y = 0.1)
+    geom_point(
+      data = subset(plot_data, significant == FALSE),
+      aes(x = order, y = logpval, size = term_size_scaled),
+      alpha = 0.4, color = "lightgrey", show.legend = FALSE
+    ) +
+    geom_point(
+      data = subset(plot_data, significant == TRUE),
+      aes(x = order, y = logpval, size = term_size_scaled),
+      alpha = 0.6, color = lighter_colour, show.legend = FALSE
+    ) +
+    geom_point(
+      data = label_data,
+      aes(x = order, y = logpval, size = term_size_scaled),
+      alpha = 1, color = colour_pick, show.legend = FALSE
+    ) +
+    scale_size_continuous(range = c(0.3, 3), guide = "none") + 
+    geom_hline(
+      yintercept = -log10(0.05), linetype = "dashed",
+      linewidth = 0.25, color = "black"
+    ) +
+    ggrepel::geom_text_repel(
+      data = label_data,
+      aes(x = order, y = logpval, label = term_name),
+      size = 5 / .pt,  # 5 pt converted to mm
+      ylim = c(-log10(0.05), 5),
+      box.padding = 0.35,
+      point.padding = 0.3,
+      segment.color = "black", segment.size = 0.3,
+      max.overlaps = Inf,
+      force = 2, force_pull = 1, nudge_y = 0.1
+    )
+  
   return(plot)
 }
+
 
 ###### LOAD DATAFRAME(S) ######
 # Load in association data and extract it down to the significant associations
@@ -235,13 +265,36 @@ query_list <- list("VAT (all)" = vat,
                          plot_data$precision>=0.10)
   
   all_fat <- gostres_plot(gostres, label_data, "black", plot_data)
-  
 
+  asat_all <- asat_all + 
+    ggtitle("ASAT (all)") +
+    theme(plot.title = element_text(size = 7)) + 
+    theme(plot.margin = margin(1, 1, 1, 1))
+  
+  gfat_all <- gfat_all + 
+    ggtitle("GFAT (all)") +
+    theme(plot.title = element_text(size = 7)) + 
+    theme(plot.margin = margin(1, 1, 1, 1))
+  
+  vat_all <- vat_all + 
+    ggtitle("VAT (all)") +
+    theme(plot.title = element_text(size = 7)) + 
+    theme(plot.margin = margin(1, 1, 1, 1))
+  
+  all_fat <- all_fat + 
+    ggtitle("Overlap (all)") +
+    theme(plot.title = element_text(size = 7)) + 
+    theme(plot.margin = margin(1, 1, 1, 1))
+  
 main_figure <- ggarrange(asat_all, gfat_all, vat_all, all_fat,
                          labels = c("A", "B", "C", "D"),
-                         ncol = 1, nrow = 4)
+                         ncol = 1, nrow = 4,
+                         heights = c(1, 1, 1, 1),  # equal height, but can be adjusted
+                         font.label = list(size = 7, face = "bold", color = "black"))
 
-pdf(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/manuscript/Figure5.pdf"), 
-    width = 180/25.4, height = 220/25.4, family = "Arial") 
+pdf(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/manuscript/Figure3.pdf"), 
+    width = 3.5, 
+    height = 6, 
+    family = "Arial") 
 main_figure
 dev.off()

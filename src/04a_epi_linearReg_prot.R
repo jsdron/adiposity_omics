@@ -5,7 +5,7 @@
 #              (adjusted for BMI and height), and generates figures.
 # Key Outputs: 
 #   - Linear model results for protein associations
-#   - Figures (Figure 2)
+#   - Figure (protein Miami plot)
 #   - Linear model results for sex-stratified protein associations
 #########################################
 
@@ -88,10 +88,10 @@ output_prot$p_min <- ifelse(output_prot$estimate > 0,
 
 # Calculate cumulative positions for plotting
 data_cum <- output_prot %>%
-  group_by(chr) %>%
-  summarise(max_bp = max(gene_start)) %>%
-  mutate(bp_add = lag(cumsum(as.numeric(max_bp)), default = 0)) %>%
-  select(chr, bp_add)
+  dplyr::group_by(chr) %>%
+  dplyr::summarise(max_bp = max(gene_start, na.rm = TRUE), .groups = "drop") %>%
+  dplyr::mutate(bp_add = dplyr::lag(cumsum(as.numeric(max_bp)), default = 0)) %>%
+  dplyr::select(chr, bp_add)
 
 output_prot <- output_prot %>%
   inner_join(data_cum, by = "chr") %>%
@@ -128,13 +128,16 @@ plot_asat <- ggplot(df_sub, aes(x = bp_cum, y = p_min, color = col)) +
   scale_color_manual(values = c(rep(c("grey90", "grey80"), 11), "grey90", "black", "#ECB41F")) +
   labs(x = "Genomic position", y = "-log<sub>10</sub>(P)") + 
   theme_cowplot() +
-  theme(legend.position = "none",
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        axis.title.y = element_markdown(),
-        axis.text = element_text(size = 8),
-        axis.text.x = element_text(angle = 0, vjust = 0.5)) +
-  geom_text_repel(aes(label = Protein_lab), size = 2)
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.y = ggtext::element_markdown(size = 7),
+    axis.title.x = element_text(size = 7),
+    axis.text = element_text(size = 7),
+    axis.text.x = element_text(angle = 0, vjust = 0.5)
+  ) +
+  ggrepel::geom_text_repel(aes(label = Protein_lab), size = 5 / .pt)  # 5 pt converted to mm
 
 ### Plot for GFAT
 df_sub <- output_prot[output_prot$outcome == "gfatadjbmi3", ]
@@ -153,13 +156,16 @@ plot_gfat <- ggplot(df_sub, aes(x = bp_cum, y = p_min, color = col)) +
   scale_color_manual(values = c(rep(c("grey90", "grey80"), 11), "grey90", "black", "#2883B1")) +
   labs(x = "Genomic position", y = "-log<sub>10</sub>(P)") + 
   theme_cowplot() +
-  theme(legend.position = "none",
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        axis.title.y = element_markdown(),
-        axis.text = element_text(size = 8),
-        axis.text.x = element_text(angle = 0, vjust = 0.5)) +
-  geom_text_repel(aes(label = Protein_lab), size = 2)
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.y = ggtext::element_markdown(size = 7),
+    axis.title.x = element_text(size = 7),
+    axis.text = element_text(size = 7),
+    axis.text.x = element_text(angle = 0, vjust = 0.5)
+  ) +
+  ggrepel::geom_text_repel(aes(label = Protein_lab), size = 5 / .pt)  # 5 pt converted to mm
 
 ### Plot for VAT
 df_sub <- output_prot[output_prot$outcome == "vatadjbmi3", ]
@@ -178,24 +184,46 @@ plot_vat <- ggplot(df_sub, aes(x = bp_cum, y = p_min, color = col)) +
   scale_color_manual(values = c(rep(c("grey90", "grey80"), 11), "grey90", "black", "#C84D4C")) +
   labs(x = "Genomic position", y = "-log<sub>10</sub>(P)", title = "VATadjBMI") + 
   theme_cowplot() +
-  theme(legend.position = "none",
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        axis.title.y = element_markdown(),
-        axis.text = element_text(size = 8),
-        axis.text.x = element_text(angle = 0, vjust = 0.5)) +
-  geom_text_repel(aes(label = Protein_lab), size = 2)
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.y = ggtext::element_markdown(size = 7),
+    axis.title.x = element_text(size = 7),
+    axis.text = element_text(size = 7),
+    axis.text.x = element_text(angle = 0, vjust = 0.5)
+  ) +
+  ggrepel::geom_text_repel(aes(label = Protein_lab), size = 5 / .pt)  # 5 pt converted to mm
 
 ### Save all panels in a single PDF
-pdf(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/manuscript/Figure2.pdf"), 
-    width = 180 / 25.4, height = 220 / 25.4, family = "Arial")
+#pdf(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/manuscript/Figure2.pdf"), 
+#    width = 180 / 25.4, height = 220 / 25.4, family = "Arial")
+plot_asat <- plot_asat + 
+  ggtitle("ASAT") +
+  theme(plot.title = element_text(size = 7))
+
+plot_gfat <- plot_gfat + 
+  ggtitle("GFAT") +
+  theme(plot.title = element_text(size = 7))
+
+plot_vat <- plot_vat + 
+  ggtitle("VAT") +
+  theme(plot.title = element_text(size = 7))
+
+svg(
+  paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/manuscript/Figure2.svg"),
+  width  = 180 / 25.4,  
+  height = 5,
+  family = "Arial"
+)
 
 ggarrange(
-  plot_asat + ggtitle("ASAT"),
-  plot_gfat + ggtitle("GFAT"),
-  plot_vat + ggtitle("VAT"),
+  plot_asat,
+  plot_gfat,
+  plot_vat,
   labels = c("A", "B", "C"),
-  ncol = 1, nrow = 3
+  ncol = 1, nrow = 3,
+  font.label = list(size = 7, face = "bold", color = "black")
 )
 
 dev.off()

@@ -4,7 +4,7 @@
 #              associated with ASAT, VAT, and GFAT, and generates forest plots 
 #              for their associations with coronary artery disease, type 2 diabetes, and chronic kidney disease.
 # Key Outputs:
-#   - Figure 5 (forest plots for protein associations with CAD, T2D, and CKD)
+#   - Figure (forest plots for protein associations with CAD, T2D, and CKD)
 #########################################
 
 ###### LIBRARIES ######
@@ -172,158 +172,164 @@ results_df <- results_df %>% distinct()
 write.table(results_df, file = "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/coxph/coxph_prot.2025-05-07.tsv", 
             sep = "\t", quote = FALSE, row.names = FALSE)
 
-sig <- subset(results_df, significance=="Significant")
-
 ###### FOREST PLOTS ######
-results_cad <- subset(results_df, results_df$outcome == "Coronary Artery Disease")
-results_cad$MR_dir <- c("-","+","+","+","+","+","+","+","+","+",
-                        "-","+ and -","-","+","+","-","-","-" )
+results_prot <- fread("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/linke_cox_model/save.tsv", data.table = F)
 
-results_t2d <- subset(results_df, results_df$outcome == "Type 2 Diabetes")
-results_t2d$MR_dir <- c("-","+","+","+","+","+","+","+","+","+",
-                        "-","+ and -","-","+","+","-","-","-" )
+results_prot$depot <- case_when(
+  results_prot$exposures %in% c("THBS2")~"ASAT", 
+  results_prot$exposures %in% c("LPL", "IL2RA", "TREH", "FCAMR", "NFASC") ~ "GFAT",
+  results_prot$exposures %in% c("SHBG") ~ "GFAT and VAT",
+  results_prot$exposures %in% c("ABL1","CCL17","MSR1", "CFB", "KHK", "TSPAN8", "SELPLG", "ANXA2", "ASAH2", "ADAMTSL5", "ITGB6") ~ "VAT",
+  TRUE ~ NA
+)
 
-results_ckd <- subset(results_df, results_df$outcome == "Chronic Kidney Disease")
-results_ckd$MR_dir <- c("-","+","+","+","+","+","+","+","+","+",
-                        "-","+ and -","-","+","+","-","-","-" )
+sum(duplicated(results_prot))
+dup <- results_prot[duplicated(results_prot) | duplicated(results_prot, fromLast = T),]
 
-# Create a meta-analysis object using the metagen() function
+## removing duplicates
+results_prot <- results_prot %>%
+  filter(!duplicated(.))
+
+threshold <- 0.05/length(unique(results_prot$exposures))
+results_prot$significance <- ifelse(results_prot$pval < threshold, "Significant", "Not Significant")
+
+results_prot$omic <- "Proteomic"
+
+results_prot$N_label <- paste0(results_prot$n_incidence, " / ", results_prot$n)
+
+# Subsetting and creating meta-analysis objects
+results_cad_prot <- subset(results_prot, results_prot$outcome=="Coronary_Artery_Disease")
+results_t2d_prot <- subset(results_prot, results_prot$outcome=="Diabetes_Type_2")
+results_ckd_prot <- subset(results_prot, results_prot$outcome=="Chronic_kidney_disease")
+
+# CAD ----
 meta_analysis_cad_prot <- metagen(
-  TE = estimate, # Effect size
-  seTE = std.error, # Standard errors of the effect sizes
-  studlab = term, # Study labels (terms)
-  byvar = depot, # Subgroup variable
-  sm = "HR", # Effect measure: Hazard Ratio
-  lower = conf.low, # Lower bound of the 95% CI
-  upper = conf.high, # Upper bound of the 95% CI
-  n.c = N,
-  n.e = N.e, 
-  data = results_cad,
-  pval = p.value
+  TE = log(HR), seTE = se,
+  studlab = exposures, byvar = depot, sm = "HR", 
+  lower = log(lci), upper = log(uci),
+  n.c = n, n.e = n_incidence, 
+  data = results_cad_prot,
+  pval = pval)
+
+meta_analysis_cad_prot$N_label <- results_cad_prot$N_label
+meta_analysis_cad_prot$my_pval <- sprintf("%.2e", meta_analysis_cad_prot$pval) 
+
+pdf("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/linke_cox_model/jd_version/Figure5_prot_cad.pdf",
+    width = 2.5,              # inches; adjust as needed
+    height = 4,  # simple heuristic
+    pointsize = 7,            # <-- sets base font to 7 pt
+    family = "Arial",
+    useDingbats = FALSE)      # safer glyph embedding for journals
+
+forest(
+  x = meta_analysis_cad_prot,
+  common = FALSE, random = FALSE, overall = FALSE,
+  col.square=c("#A68A6D"), col.square.lines=c("#A68A6D"),
+  sortvar = TE,
+  print.subgroup.hetstat = FALSE,
+  print.overall.hetstat = FALSE,
+  fontsize=7,
+  weight.study = "same",
+  colgap = unit(4, "mm"),                 # narrower column gaps
+  colgap.forest.left = "5mm",              # less gap before forest plot
+  plotwidth = unit(2, "cm"),             # shrink forest panel width
+  big.mark = ",",
+  subgroup = FALSE, print.subgroup.name = FALSE, col.subgroup = "black",
+  smlab = "", smlab.pos = 0,
+  xlab = "Hazard Ratio (95% CI)",
+  leftcols = c("studlab"), #, "N_label"),
+  leftlabs = c("Exposure"), #, "Number of events /\nTotal participants"),
+  rightcols = c("my_pval"), # "effect", "ci", 
+  rightlabs = c("P-value"), # "HR", "95% CI",
+  cex = 0.8                                # slight downscale of text/columns
 )
 
-meta_analysis_cad_prot$N_label <- results_cad$N_label
-meta_analysis_cad_prot$MR_dir <- results_cad$MR_dir
+dev.off()
 
+# T2D ----
 meta_analysis_t2d_prot <- metagen(
-  TE = estimate, # Effect size
-  seTE = std.error, # Standard errors of the effect sizes
-  studlab = term, # Study labels (terms)
-  byvar = depot, # Subgroup variable
-  sm = "HR", # Effect measure: Hazard Ratio
-  lower = conf.low, # Lower bound of the 95% CI
-  upper = conf.high, # Upper bound of the 95% CI
-  n.e = N.e,
-  n.c = N,
-  data = results_t2d,
-  pval = p.value
+  TE = log(HR), seTE = se,
+  studlab = exposures, byvar = depot, sm = "HR", 
+  lower = log(lci), upper = log(uci),
+  n.c = n, n.e = n_incidence, 
+  data = results_t2d_prot,
+  pval = pval)
+
+meta_analysis_t2d_prot$N_label <- results_t2d_prot$N_label
+meta_analysis_t2d_prot$my_pval <- sprintf("%.2e", meta_analysis_t2d_prot$pval) 
+
+pdf("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/linke_cox_model/jd_version/Figure5_prot_t2d.pdf",
+    width = 2.5,              # inches; adjust as needed
+    height = 4,  # simple heuristic
+    pointsize = 7,            # <-- sets base font to 7 pt
+    family = "Arial",
+    useDingbats = FALSE)      # safer glyph embedding for journals
+
+forest(
+  x = meta_analysis_t2d_prot,
+  common = FALSE, random = FALSE, overall = FALSE,
+  col.square=c("#A68A6D"), col.square.lines=c("#A68A6D"),
+  sortvar = TE,
+  print.subgroup.hetstat = FALSE,
+  print.overall.hetstat = FALSE,
+  fontsize=7,
+  weight.study = "same",
+  colgap = unit(4, "mm"),                 # narrower column gaps
+  colgap.forest.left = "5mm",              # less gap before forest plot
+  plotwidth = unit(2, "cm"),             # shrink forest panel width
+  big.mark = ",",
+  subgroup = FALSE, print.subgroup.name = FALSE, col.subgroup = "black",
+  smlab = "", smlab.pos = 0,
+  xlab = "Hazard Ratio (95% CI)",
+  leftcols = c("studlab"), #, "N_label"),
+  leftlabs = c("Exposure"), #, "Number of events /\nTotal participants"),
+  rightcols = c("my_pval"), # "effect", "ci", 
+  rightlabs = c("P-value"), # "HR", "95% CI",
+  cex = 0.8                                # slight downscale of text/columns
 )
 
-meta_analysis_t2d_prot$N_label <- results_t2d$N_label
-meta_analysis_t2d_prot$MR_dir <- results_t2d$MR_dir
+dev.off()
 
+# CKD ----
 meta_analysis_ckd_prot <- metagen(
-  TE = estimate, # Effect size
-  seTE = std.error, # Standard errors of the effect sizes
-  studlab = term, # Study labels (terms)
-  byvar = depot, # Subgroup variable
-  sm = "HR", # Effect measure: Hazard Ratio
-  lower = conf.low, # Lower bound of the 95% CI
-  upper = conf.high, # Upper bound of the 95% CI
-  n.e = N.e,
-  n.c = N,
-  data = results_ckd,
-  pval = p.value
-)
+  TE = log(HR), seTE = se,
+  studlab = exposures, byvar = depot, sm = "HR", 
+  lower = log(lci), upper = log(uci),
+  n.c = n, n.e = n_incidence, 
+  data = results_ckd_prot,
+  pval = pval)
 
-meta_analysis_ckd_prot$N_label <- results_ckd$N_label
-meta_analysis_ckd_prot$MR_dir <- results_ckd$MR_dir
+meta_analysis_ckd_prot$N_label <- results_ckd_prot$N_label
+meta_analysis_ckd_prot$my_pval <- sprintf("%.2e", meta_analysis_ckd_prot$pval) 
 
-# Create the forest plot
-pdf(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/manuscript/Figure5_prot_cad.pdf"), 
-    width = 230/25.4, height = 7, family = "Arial") 
+pdf("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/linke_cox_model/jd_version/Figure5_prot_ckd.pdf",
+    width = 2.5,              # inches; adjust as needed
+    height = 4,  # simple heuristic
+    pointsize = 7,            # <-- sets base font to 7 pt
+    family = "Arial",
+    useDingbats = FALSE)      # safer glyph embedding for journals
 
-forest(x = meta_analysis_cad_prot,
-       common = FALSE, 
-       random = FALSE, 
-       overall = FALSE,
-       sortvar = TE, # sorts them by effect size
-       print.subgroup.hetstat = FALSE,  # Show heterogeneity for subgroups
-       print.overall.hetstat = FALSE,  # Hide overall heterogeneity test results
-       weight.study="same",
-       colgap=unit(7, "mm"), # gaps between each column
-       colgap.forest.left="10mm", 
-       plotwidth=unit(6.5, "cm"),
-       big.mark = ",",
-       subgroup = FALSE, print.subgroup.name=FALSE, col.subgroup="black",
-       level=0.95,
-       smlab="", smlab.pos=0, 
-       xlab="Hazard Ratio (95% CI)", 
-       leftcols=c("studlab", "N_label"),
-       leftlabs=c("Exposure", "Number of events /\nTotal participants"),
-       #scientific.pval=FALSE, digits.pval=1, digits.pval.Q=1, 
-       rightcols=c("effect", "ci", "p.value"), # , "MR_dir"
-       rightlabs=c("HR", "95% CI", "P-value"), # , "MR effect"
-       addrows.below.overall = 1
-)
-
-dev.off()
-
-# Create the forest plot
-pdf(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/manuscript/Figure5_prot_t2d.pdf"), 
-    width = 235/25.4, height = 7, family = "Arial") 
-
-forest(x = meta_analysis_t2d_prot,
-       common = FALSE, 
-       random = FALSE, 
-       overall = FALSE,
-       sortvar = TE, # sorts them by effect size
-       print.subgroup.hetstat = FALSE,  # Show heterogeneity for subgroups
-       print.overall.hetstat = FALSE,  # Hide overall heterogeneity test results
-       weight.study="same",
-       colgap=unit(7, "mm"), # gaps between each column
-       colgap.forest.left="10mm", 
-       plotwidth=unit(6.5, "cm"),
-       big.mark = ",",
-       subgroup = FALSE, print.subgroup.name=FALSE, col.subgroup="black",
-       level=0.95,
-       smlab="", smlab.pos=0, 
-       xlab="Hazard Ratio (95% CI)", 
-       leftcols=c("studlab", "N_label"),
-       leftlabs=c("Exposure", "Number of events /\nTotal participants"),
-       #scientific.pval=FALSE, digits.pval=1, digits.pval.Q=1, 
-       rightcols=c("effect", "ci", "p.value"), # , "MR_dir"
-       rightlabs=c("HR", "95% CI", "P-value"), # , "MR effect"
-       addrows.below.overall = 1
-)
-
-dev.off()
-
-pdf(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/figures/manuscript/Figure5_prot_ckd.pdf"), 
-    width = 230/25.4, height = 7, family = "Arial") 
-
-forest(x = meta_analysis_ckd_prot,
-       common = FALSE, 
-       random = FALSE, 
-       overall = FALSE,
-       sortvar = TE, # sorts them by effect size
-       print.subgroup.hetstat = FALSE,  # Show heterogeneity for subgroups
-       print.overall.hetstat = FALSE,  # Hide overall heterogeneity test results
-       weight.study="same",
-       colgap=unit(7, "mm"), # gaps between each column
-       colgap.forest.left="10mm", 
-       plotwidth=unit(6.5, "cm"),
-       big.mark = ",",
-       subgroup = FALSE, print.subgroup.name=FALSE, col.subgroup="black",
-       level=0.95,
-       smlab="", smlab.pos=0, 
-       xlab="Hazard Ratio (95% CI)", 
-       leftcols=c("studlab", "N_label"),
-       leftlabs=c("Exposure", "Number of events /\nTotal participants"),
-       #scientific.pval=FALSE, digits.pval=1, digits.pval.Q=1, 
-       rightcols=c("effect", "ci", "p.value"), # , "MR_dir"
-       rightlabs=c("HR", "95% CI", "P-value"), # , "MR effect"
-       addrows.below.overall = 1
+forest(
+  x = meta_analysis_ckd_prot,
+  common = FALSE, random = FALSE, overall = FALSE,
+  col.square=c("#A68A6D"), col.square.lines=c("#A68A6D"),
+  sortvar = TE,
+  print.subgroup.hetstat = FALSE,
+  print.overall.hetstat = FALSE,
+  fontsize=7,
+  weight.study = "same",
+  colgap = unit(4, "mm"),                 # narrower column gaps
+  colgap.forest.left = "5mm",              # less gap before forest plot
+  plotwidth = unit(2, "cm"),             # shrink forest panel width
+  big.mark = ",",
+  subgroup = FALSE, print.subgroup.name = FALSE, col.subgroup = "black",
+  smlab = "", smlab.pos = 0,
+  xlab = "Hazard Ratio (95% CI)",
+  leftcols = c("studlab"), #, "N_label"),
+  leftlabs = c("Exposure"), #, "Number of events /\nTotal participants"),
+  rightcols = c("my_pval"), # "effect", "ci", 
+  rightlabs = c("P-value"), # "HR", "95% CI",
+  cex = 0.8                                # slight downscale of text/columns
 )
 
 dev.off()
