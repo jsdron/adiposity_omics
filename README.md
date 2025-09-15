@@ -14,7 +14,7 @@ Note that access to the UK Biobank is required to replicate these results.
 
 ```bash
 ./src/                      # Analysis scripts (see detailed list below)
-./data/                     # Processed data (not included; available upon request or via UKB)
+./sumstats/                 # GWAS summary statistics
 ```
 
 ## Script Index
