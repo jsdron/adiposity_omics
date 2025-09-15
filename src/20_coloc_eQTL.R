@@ -289,7 +289,7 @@ gwas_N <- 32950
 
 ## Genes and tissues to scan
 genes <- unique(bed$V4)                              
-tissues <- intersect(tissues, N_eqtl_all$Tissue)
+tissues <- unique(N_eqtl_all$Tissue)
 
 ## Main coloc loop (ABF only)
 extract_abf_summary <- function(abf) {
@@ -320,6 +320,10 @@ extract_abf_summary <- function(abf) {
 
 ix <- 1L
 results <- list()
+inp_dir <- "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/data/coloc"
+if (!dir.exists(inp_dir)) dir.create(inp_dir, recursive = TRUE)
+
+safe <- function(x) gsub("[^A-Za-z0-9._-]+", "_", x)
 
 for (g in genes) {
   gr <- gene_region(g)
@@ -361,6 +365,23 @@ for (g in genes) {
       m[, pval_eqtl := 2*pnorm(-abs(beta_eqtl/se_eqtl))]
       m[, pval_gwas := 2*pnorm(-abs(beta_gwas/se_gwas))]
       
+      fname <- sprintf("%s__%s__%s__%s_%d_%d.rds",
+                       safe(gr$gene_symbol), safe(tiss), safe(gw_name),
+                       safe(gr$chr), gr$start, gr$end)
+      fpath <- file.path(inp_dir, fname)
+      
+      # store exactly what you’ll want to inspect later
+      saveRDS(
+        list(
+          meta   = list(gene=gr$gene_symbol, gene_id=gr$gene_id, tissue=tiss, gwas=gw_name,
+                        chr=gr$chr, start=gr$start, end=gr$end, N_eqtl=N_eqtl, N_gwas=N_gwas),
+          data1  = inp$data1,     # eQTL input to coloc.abf
+          data2  = inp$data2,     # GWAS input to coloc.abf
+          merged = m              # your merged table with computed p-values
+        ),
+        fpath, compress = "xz"
+      )
+      
       results[[ix]] <- data.table(
         gene = gr$gene_symbol,
         gene_id = gr$gene_id,
@@ -370,7 +391,8 @@ for (g in genes) {
         nsnps = s$nsnps,
         PP0 = s$PP0, PP1 = s$PP1, PP2 = s$PP2, PP3 = s$PP3, PP4 = s$PP4,
         min_p_eqtl = min(m$pval_eqtl, na.rm=TRUE),
-        min_p_gwas = min(m$pval_gwas, na.rm=TRUE)
+        min_p_gwas = min(m$pval_gwas, na.rm=TRUE),
+        inp_file = fpath
       )
       ix <- ix + 1L
     }
@@ -396,8 +418,8 @@ res_filtered <- res[
   }, gwas, gene)
 ]
 
-data.table::fwrite(res, "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/tissue_coloc/coloc_abf_eQTL-GWAS.2025-08-10.tsv", sep = "\t")
-data.table::fwrite(res_filtered, "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/tissue_coloc/coloc_abf_eQTL-GWAS_candidates.2025-08-10.tsv", sep = "\t")
+data.table::fwrite(res, "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/tissue_coloc/coloc_abf_eQTL-GWAS.2025-08-26.tsv", sep = "\t")
+data.table::fwrite(res_filtered, "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/tissue_coloc/coloc_abf_eQTL-GWAS_candidates.2025-08-26.tsv", sep = "\t")
 
 # Save this file of regions for the LD matrix
 loci_manifest <- res_filtered[, c(1,5:7)]
@@ -406,12 +428,34 @@ loci_manifest$chr <- gsub("chr", "", loci_manifest$chr)
 colnames(loci_manifest) <- c("locus_id", "chr", "start_bp", "end_bp")
 
 # Can stick with eQTL windows since they contain the pQTL windows
-data.table::fwrite(loci_manifest, "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/data/locuszoom/loci_manifest.2025-08-14.tsv", sep = "\t")
+data.table::fwrite(loci_manifest, "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/data/locuszoom/loci_manifest.2025-08-26.tsv", sep = "\t")
 
-
-# ###### VISUALIZE AND SUMMARIZE RESULTS ######
-# res_filtered <- fread("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/tissue_coloc/coloc_abf_eQTL-GWAS_candidates.2025-08-10.tsv")
+###### VISUALIZE AND SUMMARIZE RESULTS ######
+# inp_dir <- "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/data/coloc"
 # 
+# get_inp <- function(g, t, gw, dir = inp_dir) {
+#   f <- file.path(dir, sprintf("%s_%s_%s.rds", g, t, gw))
+#   if (!file.exists(f)) stop("Not found: ", f)
+#   readRDS(f)
+# }
+# 
+# gene <- "SHBG"
+# tissue <- "Brain_Nucleus_accumbens_basal_ganglia"
+# depot <- "GFAT"
+# 
+# inp <- get_inp(gene, tissue, depot)
+# d1 <- inp$data1
+# d2 <- inp$data2
+# 
+# plot_dataset(d1, main = paste0("eQTL (", tissue, ")"))
+# plot_dataset(d2, main = paste0(depot, " (GWAS)"))
+
+
+
+
+
+
+
 # # Overall PP4 distribution
 # summary(res_filtered$PP4)
 # hist(res_filtered$PP4, breaks=50, main="PP4 distribution", xlab="PP4")
