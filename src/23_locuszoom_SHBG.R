@@ -1,3 +1,13 @@
+#########################################
+# Script: locuszoom_SHBG.R
+# Description: Generates multi-panel locuszoom plots for the SHBG locus,
+#              integrating GWAS, eQTL, and pQTL data with LD information 
+#              and gene tracks.
+#
+# Key Outputs:
+#   - Figure (PDF; locuszoom plots of SHBG across GWAS, eQTL, pQTL, and gene tracks)
+#########################################
+
 ###### LIBRARIES ######
 library(data.table)
 library(dplyr)
@@ -11,8 +21,6 @@ library(AnnotationHub)
 
 library(EnsDb.Hsapiens.v86)
 ensdb <- EnsDb.Hsapiens.v86
-
-###### FUNCTIONS ######
 
 ###### VARIABLES ######
 gene <- "SHBG"

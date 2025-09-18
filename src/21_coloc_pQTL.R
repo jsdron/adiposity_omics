@@ -2,6 +2,7 @@
 # Script: coloc_pQTL.R
 # Description: Colocalization analysis of pQTLs and fat depot GWAS
 #
+# Key Outputs:
 #   - Generates coloc output result files
 #########################################
 
@@ -185,6 +186,20 @@ extract_abf_summary <- function(abf) {
   }
 }
 
+read_gwas <- function(p) {
+  dt <- fread(p)
+  # Ensure expected columns exist; rename if needed
+  need <- c("CHR","GENPOS","ALLELE0","ALLELE1","BETA","SE","A1FREQ")
+  has  <- toupper(names(dt))
+  setnames(dt, names(dt), has)
+  # Common alternates:
+  altmap <- c("CHROM"="CHR","POS"="GENPOS","A0"="ALLELE0","A1"="ALLELE1",
+              "BETA_SNP"="BETA","SE_SNP"="SE","MAF"="A1FREQ","AF"="A1FREQ")
+  for (k in names(altmap)) if (k %in% names(dt) && !(altmap[k] %in% names(dt))) setnames(dt, k, altmap[k])
+  stopifnot(all(need %in% names(dt)))
+  dt[]
+}
+
 
 ###### RUN COLOC ######
 # Define your protein loci and pQTL files
@@ -208,20 +223,6 @@ gwas_paths <- list(
   ASAT = "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/GWAS/bolt_lmm/for_pub/GWAS_asatadjbmi3_UKB-noProt_EUR_hg38_INFOgt0.3_MAFgt0.005.stats.gz",
   VAT  = "/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/results/GWAS/bolt_lmm/for_pub/GWAS_vatadjbmi3_UKB-noProt_EUR_hg38_INFOgt0.3_MAFgt0.005.stats.gz"
 )
-
-read_gwas <- function(p) {
-  dt <- fread(p)
-  # Ensure expected columns exist; rename if needed
-  need <- c("CHR","GENPOS","ALLELE0","ALLELE1","BETA","SE","A1FREQ")
-  has  <- toupper(names(dt))
-  setnames(dt, names(dt), has)
-  # Common alternates:
-  altmap <- c("CHROM"="CHR","POS"="GENPOS","A0"="ALLELE0","A1"="ALLELE1",
-              "BETA_SNP"="BETA","SE_SNP"="SE","MAF"="A1FREQ","AF"="A1FREQ")
-  for (k in names(altmap)) if (k %in% names(dt) && !(altmap[k] %in% names(dt))) setnames(dt, k, altmap[k])
-  stopifnot(all(need %in% names(dt)))
-  dt[]
-}
 
 gwas_list <- lapply(gwas_paths, read_gwas)
 

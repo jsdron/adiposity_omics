@@ -1,3 +1,13 @@
+#########################################
+# Script: locuszoom_CFB.R
+# Description: Generates multi-panel locuszoom plots for the CFB locus,
+#              integrating GWAS, eQTL, and pQTL data with LD information 
+#              and gene tracks.
+#
+# Key Outputs:
+#   - Figure (PDF; locuszoom plots of CFB across GWAS, eQTL, pQTL, and gene tracks)
+#########################################
+
 ###### LIBRARIES ######
 library(data.table)
 library(dplyr)
@@ -11,8 +21,6 @@ library(AnnotationHub)
 
 library(EnsDb.Hsapiens.v86)
 ensdb <- EnsDb.Hsapiens.v86
-
-###### FUNCTIONS ######
 
 ###### VARIABLES ######
 gene <- "CFB"
@@ -268,27 +276,3 @@ pdf(paste0("/Volumes/medpop_esp2/jdron/projects/adiposity/adiposity_omics/result
     family = "Arial") 
 cowplot::plot_grid(ap_full[[1]], ap_full[[2]], ap_full[[3]], ap_full[[4]], ncol = 1,  rel_heights = c(1,1,1.05,1.8))
 dev.off()
-
-# locuscomparer-----
-# E <- as.data.table(loc.eqtl$data)[,  .(SNP, logPe = logP)]
-# O <- as.data.table(loc.gwas$data)[, .(SNP, logPo = logP, R2 = ld)]
-# M <- merge(E, O, by="SNP", all=FALSE)
-# 
-# # bins, tag index, order bottom→top
-# M$ld_bin <- cut(M$R2, breaks=c(-Inf,0,0.2,0.4,0.6,0.8,1),
-#                 labels=c("No LD","0–0.2","0.2–0.4","0.4–0.6","0.6–0.8","0.8–1"),
-#                 include.lowest=TRUE, right=TRUE)
-# M$ld_bin[is.na(M$R2)] <- "No LD"
-# M$ld_bin[M$SNP == index_snp] <- "Index SNP"
-# levs <- c("No LD","0–0.2","0.2–0.4","0.4–0.6","0.6–0.8","0.8–1","Index SNP")
-# M$ld_bin <- factor(M$ld_bin, levels=levs)
-# M <- M[order(M$ld_bin), ]
-# 
-# cols <- c("No LD"="grey80","0–0.2"="navyblue","0.2–0.4"="turquoise3","0.4–0.6"="forestgreen",
-#           "0.6–0.8"="orange","0.8–1"="red3","Index SNP"="purple3")
-# 
-# ggplot(M, aes(logPe, logPo)) +
-#   geom_point(aes(fill=ld_bin), shape=21, color="black", size=2, stroke=0.35) +
-#   scale_fill_manual(values=cols, drop=FALSE, name=expression(LD~r^2)) +
-#   coord_equal() + 
-#   theme_cowplot()
